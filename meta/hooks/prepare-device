@@ -1,0 +1,29 @@
+#!/bin/sh
+
+set -x
+
+exec >> $SNAP_COMMON/prepare-device-hook.log 2>&1
+
+# This will need hardware-observe interface
+# product_serial=$(cat /sys/devices/virtual/dmi/id/product_serial)
+product_serial=$(cat /etc/machine-id)
+
+SERIAL_FILE=$SNAP_COMMON/test
+echo "product_serial:[$product_serial]" > "$SERIAL_FILE"
+
+if [ ! "$product_serial" ]; then
+    echo "Empty product_serial"
+    exit 1
+fi
+
+# Set the serial number of the device (needed for the serial assertion)
+snapctl set registration.proposed-serial="'${product_serial}'"
+
+# Set the location of the Serial Vault and the API key (latter to be added before uncommenting!)
+snapctl set device-service.url="https://serial-vault-partners.canonical.com/v1/"
+#snapctl set device-service.headers='{"api-key": ""}'
+
+# Optionally pass details of the device as the body of registration request,
+# the body is a YAML string.
+# This might need to be obtained dynamically
+# snapctl set registration.body='mac: "00:00:00:00:ff:00"'
